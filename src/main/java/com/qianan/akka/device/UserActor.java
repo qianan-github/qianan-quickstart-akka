@@ -1,17 +1,17 @@
 package com.qianan.akka.device;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.cluster.client.ClusterClient;
-import scala.concurrent.duration.Duration;
+import static com.qianan.akka.device.LockDevice.ADMIN_PWD;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import static com.qianan.akka.device.LockDevice.ADMIN_PWD;
+import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.cluster.client.ClusterClient;
+import scala.concurrent.duration.Duration;
 
 public class UserActor extends AbstractActor {
     private final ActorRef cloudRef;
@@ -39,7 +39,6 @@ public class UserActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(String.class, msg -> System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
                 .match(Report.LockPwdReport.class, this::processLockPwdReport)
                 .build();
     }

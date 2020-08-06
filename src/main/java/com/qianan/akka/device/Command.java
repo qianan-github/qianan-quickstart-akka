@@ -7,7 +7,7 @@ import java.io.Serializable;
 public interface Command extends Serializable {
     String getDeviceId();
 
-    String getId();
+    String getCommandId();
 
     @Data
     class StandardCommand implements Command {
