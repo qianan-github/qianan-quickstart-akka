@@ -12,7 +12,6 @@ public interface Response extends Serializable {
         private String commandId;
         private CommandExecStatusEnum commandExecStatusEnum;
         private T data;
-        private String deviceId;
 
         public StandardResponse(String deviceId) {
             this.deviceId = deviceId;

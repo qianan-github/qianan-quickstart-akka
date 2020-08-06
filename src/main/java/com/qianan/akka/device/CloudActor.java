@@ -38,7 +38,7 @@ public class CloudActor extends AbstractActor {
     }
 
     private void processHelloResponse(Response.HelloResponse response) {
-        System.out.println("hello !");
+        System.out.println("中控回复Hello成功！");
     }
 
     private void processReport(Report.StandardReport report) {
