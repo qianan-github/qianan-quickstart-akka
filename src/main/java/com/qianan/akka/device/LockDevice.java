@@ -24,27 +24,20 @@ public class LockDevice extends SubDevice {
     public void preStart() throws Exception {
         super.preStart();
         ActorSystem system = context().system();
-        //启动后，开始每两秒自动耗电
         system.scheduler().schedule(
                 Duration.create(2, TimeUnit.SECONDS),
                 Duration.create(2, TimeUnit.SECONDS),
                 () -> {
                     if (!dead) {
+                        //启动后，开始每两秒自动耗电
                         self().tell("consumePower" , ActorRef.noSender());
-                    }
-                },
-                system.dispatcher());
-
-        //启动后，往中控发心跳
-        system.scheduler().schedule(
-                Duration.create(2, TimeUnit.SECONDS),
-                Duration.create(2, TimeUnit.SECONDS),
-                () -> {
-                    if (!dead) {
+                        //启动后，往中控发心跳
                         centerController.tell(new Report.HeartBeat(deviceId), self());
+                        centerController.tell(new Report.LockPwdReport(deviceId, pwds), self());
                     }
                 },
-                system.dispatcher());
+                system.dispatcher()
+        );
     }
 
     @Override

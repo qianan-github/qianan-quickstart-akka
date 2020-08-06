@@ -17,7 +17,7 @@ import akka.cluster.sharding.ShardRegion;
 
 public class CloudClient {
     public static void main(String[] args) {
-        startupClusterNodes(Arrays.asList("2551", "2552", "2553"));
+        startupClusterNodes(Arrays.asList("2551"));
     }
 
     private static void startupClusterNodes(List<String> ports) {
@@ -25,7 +25,7 @@ public class CloudClient {
             ActorSystem actorSystem = ActorSystem.create("deviceSystem", setupClusterNodeConfig(port));
             ActorRef shardingRegion = setupClusterSharding(actorSystem);
             ActorRef cloudActor = actorSystem.actorOf(Props.create(CloudActor.class, shardingRegion), "cloudActor" );
-            ClusterClientReceptionist.get(actorSystem).registerService(cloudActor);
+//            ClusterClientReceptionist.get(actorSystem).registerService(cloudActor);
         });
     }
 
