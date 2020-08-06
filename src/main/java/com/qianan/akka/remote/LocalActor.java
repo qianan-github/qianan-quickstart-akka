@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LocalActor extends AbstractActor {
-    private ActorSelection remoteActor = context().actorSelection("akka.tcp://remoteSystem@127.0.0.1:2553/user/remoteActor");
+    private ActorSelection remoteActor = context().actorSelection("akka.tcp://remoteSystem@127.0.0.1:2553/user.conf/remoteActor");
 
     @Override
     public Receive createReceive() {

@@ -9,6 +9,7 @@
         <java.version>8</java.version>
         <scala.version>2.12</scala.version>
         <akka.version>2.5.23</akka.version>
+        <project.encoding>UTF-8</project.encoding>
     </properties>
 
     <dependencies>
@@ -36,4 +37,26 @@
         </dependency>
 
     </dependencies>
+
+    <plugins>
+        <!-- formatter -->
+        <plugin>
+            <groupId>com.googlecode.maven-java-formatter-plugin</groupId>
+            <artifactId>maven-java-formatter-plugin</artifactId>
+            <version>0.4</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>format</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <configFile>D:/formatter/codestyle/formatter.xml</configFile>
+                <encoding>${project.encoding}</encoding>
+            </configuration>
+        </plugin>
+        
+    </plugins>
+
 </project>
