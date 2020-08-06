@@ -20,14 +20,17 @@ public class CenterController extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(String.class, msg -> {
-                    System.out.println("你好啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊");
-                    cloudRef = sender();
-                })
+                .match(Command.HelloCommand.class, this::processHelloCommand)
                 .match(Report.HeartBeat.class, this::forwardHeartBeat)
                 .match(Command.StandardCommand.class, this::processCommand)
                 .match(Report.LockPwdReport.class, this::processLockPwdReport)
                 .build();
+    }
+
+    private void processHelloCommand(Command.HelloCommand command) {
+        Response.HelloResponse response = new Response.HelloResponse(deviceId);
+        cloudRef = sender();
+        cloudRef.tell(response, self());
     }
 
     private void forwardHeartBeat(Report.HeartBeat hb) {

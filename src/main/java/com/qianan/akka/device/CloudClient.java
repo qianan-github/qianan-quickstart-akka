@@ -23,9 +23,16 @@ public class CloudClient {
     private static void startupClusterNodes(List<String> ports) {
         ports.forEach(port -> {
             ActorSystem actorSystem = ActorSystem.create("deviceSystem", setupClusterNodeConfig(port));
-            ActorRef shardingRegion = setupClusterSharding(actorSystem);
-            ActorRef cloudActor = actorSystem.actorOf(Props.create(CloudActor.class, shardingRegion), "cloudActor" );
-//            ClusterClientReceptionist.get(actorSystem).registerService(cloudActor);
+
+            String centerControllerId = "centerController" + UUID.randomUUID().toString();
+            ActorRef shardingRegion =  ClusterSharding.get(actorSystem).start(
+                    "centerControllerActor",
+                    Props.create(CenterController.class, centerControllerId),
+                    ClusterShardingSettings.create(actorSystem),
+                    messageExtractor()
+            );
+            ActorRef cloudActor = actorSystem.actorOf(Props.create(CloudActor.class, shardingRegion, centerControllerId), "cloudActor" );
+            ClusterClientReceptionist.get(actorSystem).registerService(cloudActor);
         });
     }
 
@@ -64,16 +71,24 @@ public class CloudClient {
             }
 
             private String extractShardIdFromCommands(Object message) {
-                if (message instanceof Command.StandardCommand) {
+                if (message instanceof Report.StandardReport) {
+                    return ((Report.StandardReport) message).getDeviceId().hashCode() % 10 + "";
+                } else if (message instanceof Command.StandardCommand) {
                     return ((Command.StandardCommand) message).getDeviceId().hashCode() % 10 + "";
+                } else if (message instanceof Response.StandardResponse) {
+                    return ((Response.StandardResponse) message).getDeviceId().hashCode() % 10 + "";
                 } else {
                     return null;
                 }
             }
 
             private String extractEntityIdFromCommands(Object message) {
-                if (message instanceof Command.StandardCommand) {
+                if (message instanceof Report.StandardReport) {
+                    return ((Report.StandardReport) message).getDeviceId();
+                } else if (message instanceof Command.StandardCommand) {
                     return ((Command.StandardCommand) message).getDeviceId();
+                } else if (message instanceof Response.StandardResponse) {
+                    return ((Response.StandardResponse) message).getDeviceId();
                 } else {
                     return null;
                 }

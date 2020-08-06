@@ -7,30 +7,38 @@ import akka.actor.ActorRef;
 
 public class CloudActor extends AbstractActor {
     private final ActorRef centerControllerShardRegion;
+    private final String centerControllerId;
     //key-commandId  用于上报命令处理结果给用户
     private Map<String, ActorRef> userMap;
     //活跃设备
     private Set<String> activeDevice = new HashSet<>();
 
-    public CloudActor(ActorRef centerControllerShardRegion) {
+    public CloudActor(ActorRef centerControllerShardRegion, String centerControllerId) {
         this.centerControllerShardRegion = centerControllerShardRegion;
         this.userMap = new HashMap<>();
+        this.centerControllerId = centerControllerId;
     }
 
     @Override
     public void preStart() throws Exception {
         super.preStart();
-        centerControllerShardRegion.tell("Hello CenterController, This Msg From Cloud", self());
+        Command.HelloCommand hello = new Command.HelloCommand(centerControllerId, IdFactory.IncrementIdFactory.instance);
+        centerControllerShardRegion.tell(hello, self());
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(Report.HeartBeat.class, this::processHeartBeat)
-                .match(Command.class, command -> processCommand(command, sender()))
+                .match(Response.HelloResponse.class, this::processHelloResponse)
+                .match(Command.StandardCommand.class, this::processCommand)
                 .match(Response.StandardResponse.class, this::processResponse)
                 .match(Report.StandardReport.class, this::processReport)
                 .build();
+    }
+
+    private void processHelloResponse(Response.HelloResponse response) {
+        System.out.println("hello !");
     }
 
     private void processReport(Report.StandardReport report) {
@@ -44,11 +52,11 @@ public class CloudActor extends AbstractActor {
         }
     }
 
-    private void processCommand(Command command, ActorRef sender) {
+    private void processCommand(Command.StandardCommand command) {
         System.out.println("处理命令啦");
         if (activeDevice.contains(command.getDeviceId())) {
             centerControllerShardRegion.tell(command, self());
-            userMap.put(command.getCommandId(), sender);
+            userMap.put(command.getCommandId(), sender());
         }
     }
 

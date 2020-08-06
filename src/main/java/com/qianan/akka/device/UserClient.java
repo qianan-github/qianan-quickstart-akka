@@ -13,11 +13,11 @@ public class UserClient {
     public static void main(String[] args) {
         Config conf = ConfigFactory.load("user.conf");
 
-        ActorSystem actorSystem = ActorSystem.create("actorSystem", conf);
+        ActorSystem actorSystem = ActorSystem.create("deviceSystem", conf);
 
         ActorRef cloudRef = actorSystem.actorOf(
             ClusterClient.props(ClusterClientSettings.create(actorSystem)),
-            "cloudRef");
+            "cloudActor");
 
         ActorRef userActor = actorSystem.actorOf(Props.create(UserActor.class, cloudRef));
     }

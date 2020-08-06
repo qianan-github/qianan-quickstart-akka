@@ -23,6 +23,13 @@ public interface Command extends Serializable {
     }
 
     @Data
+    class HelloCommand extends StandardCommand {
+        public HelloCommand(String deviceId, IdFactory idFactory) {
+            super(deviceId, idFactory);
+        }
+    }
+
+    @Data
     class AddLockPwdCommand extends StandardCommand {
         private String adminPwd;
         private String pwd;
