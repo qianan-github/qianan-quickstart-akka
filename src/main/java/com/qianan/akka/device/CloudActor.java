@@ -6,21 +6,14 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 
 public class CloudActor extends AbstractActor {
-    private final ActorRef centerControllerShardRegion;
+    private ActorRef centerControllerRef;
     //key-commandId  用于上报命令处理结果给用户
     private Map<String, ActorRef> userMap;
     //活跃设备
     private Set<String> activeDevice = new HashSet<>();
 
-    public CloudActor(ActorRef centerControllerShardRegion) {
-        this.centerControllerShardRegion = centerControllerShardRegion;
+    public CloudActor() {
         this.userMap = new HashMap<>();
-    }
-
-    @Override
-    public void preStart() throws Exception {
-        super.preStart();
-        centerControllerShardRegion.tell("Hello CenterController, This Msg From Cloud", self());
     }
 
     @Override
@@ -47,7 +40,7 @@ public class CloudActor extends AbstractActor {
     private void processCommand(Command command, ActorRef sender) {
         System.out.println("处理命令啦");
         if (activeDevice.contains(command.getDeviceId())) {
-            centerControllerShardRegion.tell(command, self());
+            centerControllerRef.tell(command, self());
             userMap.put(command.getCommandId(), sender);
         }
     }

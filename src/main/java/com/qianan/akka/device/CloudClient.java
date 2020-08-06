@@ -17,29 +17,32 @@ import akka.cluster.sharding.ShardRegion;
 
 public class CloudClient {
     public static void main(String[] args) {
-        startupClusterNodes(Arrays.asList("2551"));
+        startupClusterNodes(Arrays.asList("2551", "2552", "2553"));
     }
 
     private static void startupClusterNodes(List<String> ports) {
+
         ports.forEach(port -> {
-            ActorSystem actorSystem = ActorSystem.create("deviceSystem", setupClusterNodeConfig(port));
+            ActorSystem actorSystem = ActorSystem.create("sharding", setupClusterNodeConfig(port));
+
             ActorRef shardingRegion = setupClusterSharding(actorSystem);
-            ActorRef cloudActor = actorSystem.actorOf(Props.create(CloudActor.class, shardingRegion), "cloudActor" );
-//            ClusterClientReceptionist.get(actorSystem).registerService(cloudActor);
+
+            ActorRef centerRef = actorSystem.actorOf(Props.create(CenterController.class, "center:" + UUID.randomUUID().toString(), shardingRegion), "entityQuery" );
+            ClusterClientReceptionist.get(actorSystem).registerService(shardingRegion);
         });
     }
 
     private static Config setupClusterNodeConfig(String port) {
         return ConfigFactory.parseString(
                 String.format("akka.remote.netty.tcp.port=%s%n", port))
-                .withFallback(ConfigFactory.load("device.conf"));
+                .withFallback(ConfigFactory.load("cluster.conf"));
     }
 
     private static ActorRef setupClusterSharding(ActorSystem actorSystem) {
         ClusterShardingSettings settings = ClusterShardingSettings.create(actorSystem);
         return ClusterSharding.get(actorSystem).start(
-                "centerControllerActor",
-                Props.create(CenterController.class, "centerController" + UUID.randomUUID().toString()),
+                "serverActor",
+                Props.create(CloudActor.class),
                 settings,
                 messageExtractor()
         );
@@ -64,16 +67,24 @@ public class CloudClient {
             }
 
             private String extractShardIdFromCommands(Object message) {
-                if (message instanceof Command.StandardCommand) {
+                if (message instanceof Report.StandardReport) {
+                    return ((Report.StandardReport) message).getDeviceId().hashCode() % 10 + "";
+                } else if (message instanceof Command.StandardCommand) {
                     return ((Command.StandardCommand) message).getDeviceId().hashCode() % 10 + "";
+                } else if (message instanceof Response.StandardResponse) {
+                    return ((Response.StandardResponse) message).getDeviceId().hashCode() % 10 + "";
                 } else {
                     return null;
                 }
             }
 
             private String extractEntityIdFromCommands(Object message) {
-                if (message instanceof Command.StandardCommand) {
+                if (message instanceof Report.StandardReport) {
+                    return ((Report.StandardReport) message).getDeviceId();
+                } else if (message instanceof Command.StandardCommand) {
                     return ((Command.StandardCommand) message).getDeviceId();
+                } else if (message instanceof Response.StandardResponse) {
+                    return ((Response.StandardResponse) message).getDeviceId();
                 } else {
                     return null;
                 }

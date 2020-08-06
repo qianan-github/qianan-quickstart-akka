@@ -12,18 +12,24 @@ public class CenterController extends AbstractActor {
     public final String deviceId;
     private ActorRef cloudRef;
 
-    public CenterController(String deviceId) {
+    public CenterController(String deviceId, ActorRef cloudRef) {
         this.deviceId = deviceId;
+        this.cloudRef = cloudRef;
         this.subDevices = new HashMap<>();
+    }
+
+    @Override
+    public void preStart() throws Exception {
+        super.preStart();
+        Report.HeartBeat hb = new Report.HeartBeat(deviceId);
+        hb.setCenterControllerDeviceId(deviceId);
+        hb.setCenterControllerReportTime(System.currentTimeMillis());
+        cloudRef.tell(hb, self());
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(String.class, msg -> {
-                    System.out.println("你好啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊");
-                    cloudRef = sender();
-                })
                 .match(Report.HeartBeat.class, this::forwardHeartBeat)
                 .match(Command.StandardCommand.class, this::processCommand)
                 .match(Report.LockPwdReport.class, this::processLockPwdReport)
