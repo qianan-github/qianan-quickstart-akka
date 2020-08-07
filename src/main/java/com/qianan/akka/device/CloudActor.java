@@ -53,10 +53,10 @@ public class CloudActor extends AbstractActor {
     }
 
     private void processCommand(Command.StandardCommand command) {
-       // if (activeDevices.contains(command.getDeviceId())) {
+        if (activeDevices.contains(command.getDeviceId())) {
             centerControllerShardRegion.tell(command, self());
             userMap.put(command.getCommandId(), sender());
-       // }
+        }
     }
 
     private void processResponse(Response.StandardResponse<?> response) {
