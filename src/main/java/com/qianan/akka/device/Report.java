@@ -1,6 +1,7 @@
 package com.qianan.akka.device;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Objects;
  * */
 public interface Report extends Serializable {
     @Data
+    @ToString
     class StandardReport implements Report {
         //设备id
         private String deviceId;
@@ -32,6 +34,7 @@ public interface Report extends Serializable {
     }
 
     @Data
+    @ToString(callSuper = true)
     class HeartBeat extends StandardReport {
         public HeartBeat(String deviceId) {
             super(deviceId);
@@ -39,6 +42,7 @@ public interface Report extends Serializable {
     }
 
     @Data
+    @ToString(callSuper = true)
     class LockPwdReport extends StandardReport {
         //门锁密码列表
         private List<String> pwds;
@@ -50,6 +54,7 @@ public interface Report extends Serializable {
     }
 
     @Data
+    @ToString(callSuper = true)
     class LockPowerReport extends StandardReport {
         //电池电量
         private int power;
@@ -61,6 +66,7 @@ public interface Report extends Serializable {
     }
 
     @Data
+    @ToString(callSuper = true)
     class ElectricSwitchReport extends StandardReport {
         //电闸状态
         private SwitchStatus switchStatus;
@@ -78,6 +84,7 @@ public interface Report extends Serializable {
     }
 
     @Data
+    @ToString(callSuper = true)
     class ElectricDayFreezeReport extends StandardReport {
         //电表日冻结读数
         private int reading;

@@ -11,7 +11,7 @@ public class CloudActor extends AbstractActor {
     //key-commandId  用于上报命令处理结果给用户
     private Map<String, ActorRef> userMap;
     //活跃设备
-    private Set<String> activeDevice = new HashSet<>();
+    private Set<String> activeDevices = new HashSet<>();
 
     public CloudActor(ActorRef centerControllerShardRegion, String centerControllerId) {
         this.centerControllerShardRegion = centerControllerShardRegion;
@@ -38,30 +38,28 @@ public class CloudActor extends AbstractActor {
     }
 
     private void processHelloResponse(Response.HelloResponse response) {
-        System.out.println("中控回复Hello成功！");
+        System.out.println("云端：中控回复Hello成功！");
     }
 
     private void processReport(Report.StandardReport report) {
-        System.out.println("设备上报数据！！！！！！！！！");
+        System.out.println("云端：收到设备主动上报的数据 < " + report + " >");
     }
 
     private void processHeartBeat(Report.HeartBeat hb) {
-        activeDevice.add(hb.getCenterControllerDeviceId());
+        activeDevices.add(hb.getCenterControllerDeviceId());
         if (!hb.isCenterController()) {
-            activeDevice.add(hb.getDeviceId());
+            activeDevices.add(hb.getDeviceId());
         }
     }
 
     private void processCommand(Command.StandardCommand command) {
-        System.out.println("处理命令啦");
-        if (activeDevice.contains(command.getDeviceId())) {
+       // if (activeDevices.contains(command.getDeviceId())) {
             centerControllerShardRegion.tell(command, self());
             userMap.put(command.getCommandId(), sender());
-        }
+       // }
     }
 
     private void processResponse(Response.StandardResponse<?> response) {
-        System.out.println("命令回复啦");
         ActorRef userRef = userMap.get(response.getCommandId());
         if (Objects.nonNull(userRef)) {
             userRef.tell(response, self());

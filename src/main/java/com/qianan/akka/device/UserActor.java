@@ -27,38 +27,39 @@ public class UserActor extends AbstractActor {
         super.preStart();
         ActorSystem system = context().system();
         context().system().scheduler().schedule(
-                Duration.create(2, TimeUnit.SECONDS),
-                Duration.create(2, TimeUnit.SECONDS),
-                () -> {
-                    sendAddLockPwdCommand();
-                    sendDeleteLockPwdCommand();
-                },
+                Duration.create(3, TimeUnit.SECONDS),
+                Duration.create(3, TimeUnit.SECONDS),
+                this::sendAddLockPwdCommand,
+                system.dispatcher());
+
+
+        context().system().scheduler().schedule(
+                Duration.create(8, TimeUnit.SECONDS),
+                Duration.create(8, TimeUnit.SECONDS),
+                this::sendDeleteLockPwdCommand,
                 system.dispatcher());
     }
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
-                .match(Report.LockPwdReport.class, this::processLockPwdReport)
-                .build();
-    }
-
-    private void processLockPwdReport(Report.LockPwdReport report) {
-        pwdCache = report.getPwds();
+        return receiveBuilder().build();
     }
 
     private void sendAddLockPwdCommand() {
         String newPwd = String.format("%06d", ((int) (Math.random() * 1000000)));
-        Command.AddLockPwdCommand command = new Command.AddLockPwdCommand(ADMIN_PWD, newPwd, "BIG_DOOR_LOCK", IdFactory.IncrementIdFactory.instance);
-        cloudRef.tell(new ClusterClient.SendToAll("/user/cloudActor", command), self());
+        System.out.println("用户：下发新增密码指令，新密码 <" + newPwd + ">");
+        Command.AddLockPwdCommand command = new Command.AddLockPwdCommand(ADMIN_PWD, newPwd, "lock:1", "centerController:2551", IdFactory.IncrementIdFactory.instance);
+        cloudRef.tell(new ClusterClient.Send("/user/cloudActor", command), self());
         pwdCache.add(newPwd);
     }
 
     private void sendDeleteLockPwdCommand() {
         String pwd = selectPwd();
         if (Objects.nonNull(pwd)) {
-            Command.DeletePwdCommand command = new Command.DeletePwdCommand(ADMIN_PWD, pwd, "BIG_DOOR_LOCK", IdFactory.IncrementIdFactory.instance);
-            cloudRef.tell(new ClusterClient.SendToAll("/user/cloudActor", command), self());
+            System.out.println("用户：下发删除密码指令，待删除的密码 <" + pwd + ">");
+            Command.DeletePwdCommand command = new Command.DeletePwdCommand(ADMIN_PWD, pwd, "lock:1", "centerController:2551", IdFactory.IncrementIdFactory.instance);
+            cloudRef.tell(new ClusterClient.Send("/user/cloudActor", command), self());
+            pwdCache.remove(pwd);
         } else {
             sendAddLockPwdCommand();
         }
